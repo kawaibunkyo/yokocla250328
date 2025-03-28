@@ -11,10 +11,18 @@ function loadRestaurantData() {
   // エンティティをクリア
   viewer.entities.removeAll();
   
+  console.log('飲食店データ読み込み開始');
+  
   // JSONファイルの読み込み
   fetch('yokohama_restaurant_1000_1km_2_1000.json')
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP エラー: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
+      console.log('飲食店データ読み込み成功', data.length);
       allRestaurantData = data;
       displayedRestaurants = [...allRestaurantData];
       
@@ -29,6 +37,7 @@ function loadRestaurantData() {
     })
     .catch(error => {
       console.error('飲食店データの読み込みに失敗しました:', error);
+      alert('飲食店データの読み込みに失敗しました。ファイル名を確認してください。: ' + error.message);
     });
 }
 
@@ -41,87 +50,129 @@ function displayRestaurants(restaurants) {
     viewer.entities.add(currentLocationEntity);
   }
   
-  restaurants.forEach(item => {
-    // 評価に基づいて高さを変更（評価が高いほど高い）
-    const baseHeight = 20; // 基本の高さ
-    const ratingMultiplier = 100; // 評価1つあたりの高さ
-    
-    // 評価の取得と正規化（1〜5の範囲に）
-    const rating = item.rating === "N/A" || !item.rating ? 1 : Math.min(Math.max(parseFloat(item.rating), 1), 5);
-    
-    // 高さの計算（評価1なら50、評価5なら250）
-    const height = baseHeight + (rating - 1) * ratingMultiplier;
-    
-    // 価格帯の取得と正規化
-    const priceLevel = item.price_level === "N/A" || !item.price_level ? 1 : Math.min(Math.max(parseInt(item.price_level, 10), 1), 4);
-    
-    // 価格帯に基づいた色相の計算（安い：緑、高い：赤紫）
-    const hue = 120 - ((priceLevel - 1) / 3) * 160; // 120（緑）から-40（赤紫）へ
-    const saturation = 60; // 彩度は固定
-    const lightness = 50; // 明度も固定
-    
-    // HSL色の作成
-    const colorHSL = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    
-    // エンティティの説明（情報ウィンドウの内容）
-    const description = `
-        <table>
-            <tr>
-                <th>店名</th>
-                <td>${item.name}</td>
-            </tr>
-            <tr>
-                <th>価格帯</th>
-                <td>${'¥'.repeat(priceLevel)}</td>
-            </tr>
-            <tr>
-                <th>評価</th>
-                <td>${rating} ★</td>
-            </tr>
-            <tr>
-                <th>住所</th>
-                <td>${item.formatted_address || '情報なし'}</td>
-            </tr>
-            <tr>
-                <th>電話番号</th>
-                <td>${item.formatted_phone_number || '情報なし'}</td>
-            </tr>
-            <tr>
-                <th>ウェブサイト</th>
-                <td>${item.website ? `<a href="${item.website}" target="_blank">${item.website}</a>` : '情報なし'}</td>
-            </tr>
-            <tr>
-                <th>評価数</th>
-                <td>${item.user_ratings_total || '情報なし'}</td>
-            </tr>
-        </table>
-        <button onclick="findRouteToRestaurant('${item.geometry.location.lng}', '${item.geometry.location.lat}')">ここへのルートを表示</button>
-        <button onclick="switchToEvacuation('${item.geometry.location.lng}', '${item.geometry.location.lat}')">この場所から避難所を探す</button>
-    `;
-    
-    // エンティティとして3D四角柱を追加
-    viewer.entities.add({
-      name: item.name,
-      description: description,
-      position: Cesium.Cartesian3.fromDegrees(
-        item.geometry.location.lng,
-        item.geometry.location.lat,
-        height / 2  // 高さの半分を中心位置に設定
-      ),
-      box: {
-        dimensions: new Cesium.Cartesian3(10, 10, height), // 幅・奥行きは固定、高さは評価による
-        material: new Cesium.Color.fromCssColorString(colorHSL), // 価格帯に基づく色
-        outline: true,
-        outlineColor: Cesium.Color.BLACK
-      },
-      properties: {
-        isRestaurant: true,
-        restaurantData: item,
-        priceLevel: priceLevel,
-        rating: rating
+  console.log(`表示する飲食店数: ${restaurants.length}`);
+  
+  if (restaurants.length === 0) {
+    console.warn('表示する飲食店データがありません');
+    return;
+  }
+  
+  // サンプルデータをコンソールに出力して確認
+  if (restaurants.length > 0) {
+    console.log('サンプル飲食店データ:', restaurants[0]);
+  }
+  
+  restaurants.forEach((item, index) => {
+    try {
+      // データの存在確認
+      if (!item || !item.geometry || !item.geometry.location) {
+        console.error(`店舗 ${index} のデータ構造が不正です`, item);
+        return;
       }
-    });
+      
+      // 位置情報の取得
+      const lng = parseFloat(item.geometry.location.lng);
+      const lat = parseFloat(item.geometry.location.lat);
+      
+      // 数値チェック
+      if (isNaN(lng) || isNaN(lat)) {
+        console.error(`店舗 ${index} の座標が不正です`, item.geometry.location);
+        return;
+      }
+      
+      // 評価に基づいて高さを変更（評価が高いほど高い）
+      const baseHeight = 20; // 基本の高さ
+      const ratingMultiplier = 100; // 評価1つあたりの高さ
+      
+      // 評価の取得と正規化（1〜5の範囲に）
+      const rating = item.rating === "N/A" || !item.rating ? 1 : Math.min(Math.max(parseFloat(item.rating), 1), 5);
+      
+      // 高さの計算（評価1なら50、評価5なら250）
+      const height = baseHeight + (rating - 1) * ratingMultiplier;
+      
+      // 価格帯の取得と正規化
+      const priceLevel = item.price_level === "N/A" || !item.price_level ? 1 : Math.min(Math.max(parseInt(item.price_level, 10), 1), 4);
+      
+      // 価格帯に基づいた色相の計算（安い：緑、高い：赤紫）
+      const hue = 120 - ((priceLevel - 1) / 3) * 160; // 120（緑）から-40（赤紫）へ
+      const saturation = 60; // 彩度は固定
+      const lightness = 50; // 明度も固定
+      
+      // HSL色の作成
+      const colorHSL = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+      const color = Cesium.Color.fromCssColorString(colorHSL);
+      
+      // 店名の取得（未定義の場合はデフォルト値を使用）
+      const name = item.name || `店舗 ${index}`;
+      
+      // エンティティの説明（情報ウィンドウの内容）
+      const description = `
+          <table>
+              <tr>
+                  <th>店名</th>
+                  <td>${name}</td>
+              </tr>
+              <tr>
+                  <th>価格帯</th>
+                  <td>${'¥'.repeat(priceLevel)}</td>
+              </tr>
+              <tr>
+                  <th>評価</th>
+                  <td>${rating} ★</td>
+              </tr>
+              <tr>
+                  <th>住所</th>
+                  <td>${item.formatted_address || '情報なし'}</td>
+              </tr>
+              <tr>
+                  <th>電話番号</th>
+                  <td>${item.formatted_phone_number || '情報なし'}</td>
+              </tr>
+              <tr>
+                  <th>ウェブサイト</th>
+                  <td>${item.website ? `<a href="${item.website}" target="_blank">${item.website}</a>` : '情報なし'}</td>
+              </tr>
+              <tr>
+                  <th>評価数</th>
+                  <td>${item.user_ratings_total || '情報なし'}</td>
+              </tr>
+          </table>
+          <button onclick="findRouteToRestaurant(${lng}, ${lat})">ここへのルートを表示</button>
+          <button onclick="switchToEvacuation(${lng}, ${lat})">この場所から避難所を探す</button>
+      `;
+      
+      // エンティティとして3D四角柱を追加
+      viewer.entities.add({
+        name: name,
+        description: description,
+        position: Cesium.Cartesian3.fromDegrees(
+          lng,
+          lat,
+          height / 2  // 高さの半分を中心位置に設定
+        ),
+        box: {
+          dimensions: new Cesium.Cartesian3(20, 20, height), // 幅・奥行きは20に拡大、高さは評価による
+          material: color, // 価格帯に基づく色
+          outline: true,
+          outlineColor: Cesium.Color.BLACK
+        },
+        properties: {
+          isRestaurant: true,
+          restaurantData: item,
+          priceLevel: priceLevel,
+          rating: rating
+        }
+      });
+      
+      if (index === 0) {
+        console.log(`最初の飲食店 "${name}" を追加しました (位置: ${lng}, ${lat}, 高さ: ${height})`);
+      }
+    } catch (error) {
+      console.error(`店舗 ${index} の表示中にエラーが発生しました:`, error);
+    }
   });
+  
+  console.log(`${restaurants.length}件の飲食店を表示しました`);
 }
 
 // 検索機能のセットアップ
