@@ -4,7 +4,7 @@ let displayedRestaurants = [];
 let nearestRestaurantEntity = null;
 let selectedPriceRanges = [];
 let selectedRatings = [];
-let currentLocation = null; // 現在地を保存するグローバル変数
+// currentLocationはcommon.jsで定義済みなので、ここでは再定義しない
 
 // 飲食店データの読み込み
 function loadRestaurantData() {
@@ -44,7 +44,7 @@ function loadRestaurantData() {
 // 飲食店の表示
 function displayRestaurants(restaurants) {
   // エンティティをクリア（現在地マーカーは残す）
-  const currentLocationEntity = viewer.entities.getById('現在地');
+  const currentLocationEntity = viewer.entities.values.find(entity => entity.name === '現在地');
   viewer.entities.removeAll();
   if (currentLocationEntity) {
     viewer.entities.add(currentLocationEntity);
@@ -97,13 +97,15 @@ function displayRestaurants(restaurants) {
         const ratingMultiplier = 40; // 評価1つあたりの高さ
         
         // 評価の取得と正規化（1〜5の範囲に）
-        const rating = item.rating === "N/A" || !item.rating ? 1 : Math.min(Math.max(parseFloat(item.rating), 1), 5);
+        const rating = item.rating === undefined || item.rating === null || item.rating === "N/A" ? 
+            1 : Math.min(Math.max(parseFloat(item.rating), 1), 5);
         
-        // 高さの計算（評価1なら30、評価5なら190）
+        // 高さの計算（評価1なら60、評価5なら220）
         const height = baseHeight + (rating * ratingMultiplier);
         
         // 価格帯の取得と正規化
-        const priceLevel = item.price_level === "N/A" || !item.price_level ? 1 : Math.min(Math.max(parseInt(item.price_level, 10), 1), 4);
+        const priceLevel = item.price_level === undefined || item.price_level === null || item.price_level === "N/A" ? 
+            1 : Math.min(Math.max(parseInt(item.price_level, 10), 1), 4);
         
         // 価格帯に基づいた色相の計算（安い：緑、高い：赤紫）
         const hue = 120 - ((priceLevel - 1) / 3) * 120; // 120（緑）から0（赤）へ
@@ -168,7 +170,6 @@ function displayRestaurants(restaurants) {
             outline: true,
             outlineColor: Cesium.Color.BLACK
           },
-          // ラベルの設定は削除（パフォーマンス向上のため）
           properties: {
             isRestaurant: true,
             restaurantData: item,

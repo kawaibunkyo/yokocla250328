@@ -55,7 +55,18 @@ function setupUIEventListeners() {
   });
   
   // 飲食店モードの最寄り飲食店検索ボタン
-  document.getElementById('findNearestRestaurantBtn').addEventListener('click', findNearestRestaurant);
+  const findNearestRestaurantBtn = document.getElementById('findNearestRestaurantBtn');
+  if (findNearestRestaurantBtn) {
+    findNearestRestaurantBtn.addEventListener('click', () => {
+      // restaurant.jsでfindNearestRestaurant関数が定義されていることを確認
+      if (typeof findNearestRestaurant === 'function') {
+        findNearestRestaurant();
+      } else {
+        console.error('findNearestRestaurant関数が定義されていません');
+        alert('最寄り飲食店検索機能が利用できません。システム管理者にお問い合わせください。');
+      }
+    });
+  }
   
   // 飲食店モードの表示リセットボタン
   document.getElementById('resetViewRestaurantBtn').addEventListener('click', resetView);
@@ -69,16 +80,21 @@ function handleRouteError(error) {
 
 // 画像ファイルの事前読み込み（実際にはtry-catchでエラーハンドリングすべき）
 function preloadImages() {
-  const imagePaths = [
-    './img/current-location.png',
-    './img/restaurant-icon.png',
-    './img/shelter-icon.png'
-  ];
-  
-  imagePaths.forEach(path => {
-    const img = new Image();
-    img.src = path;
-  });
+  try {
+    const imagePaths = [
+      './img/current-location.png',
+      './img/restaurant-icon.png',
+      './img/shelter-icon.png'
+    ];
+    
+    imagePaths.forEach(path => {
+      const img = new Image();
+      img.src = path;
+    });
+    console.log('画像の事前読み込みを実行しました');
+  } catch (error) {
+    console.warn('画像の事前読み込み中にエラーが発生しました:', error);
+  }
 }
 
 // ページ初期化時に画像を事前読み込み
