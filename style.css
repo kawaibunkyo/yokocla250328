@@ -89,3 +89,45 @@
   color: #ffffff !important;
   opacity: 1.0 !important;
 }
+
+/* 災害フィルターのグリッドレイアウト */
+.disaster-filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.disaster-filter-grid label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.disaster-filter-grid input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+/* フィルターセクションの強調表示 */
+.filter-section h4 {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+/* チェックボックス改良 */
+input[type="checkbox"] {
+  accent-color: #4a6da7;
+  width: 16px;
+  height: 16px;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .disaster-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}

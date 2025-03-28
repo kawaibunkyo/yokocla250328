@@ -8,6 +8,7 @@
     <link href="style.css" rel="stylesheet" />
     <!-- Cesium JS -->
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
   </head>
   <body>
@@ -99,29 +100,28 @@
           </div>
         </div>
         
-        <!-- 避難所レベルフィルター -->
-        <div class="filter-section">
-          <h4>避難所レベル</h4>
-          <div class="range-filter">
-            <input type="range" id="levelFilter" min="1" max="5" value="1" step="1">
-            <span>レベル <span id="levelValue">1</span> 以上</span>
-          </div>
-        </div>
-        
-        <!-- 移動手段選択 -->
-        <div class="filter-section">
-          <h4>移動手段</h4>
-          <div>
-            <label><input type="radio" name="transportMode" value="foot-walking" checked> 徒歩</label>
-          </div>
-          <div>
-            <label><input type="radio" name="transportMode" value="driving-car"> 自動車</label>
-          </div>
-          <div>
-            <label><input type="radio" name="transportMode" value="cycling-regular"> 自転車</label>
-          </div>
-        </div>
-      </div>
+       <!-- 避難所の種類フィルター部分（既存部分を修正） -->
+<div class="filter-section">
+  <h4>避難所の種類</h4>
+  <div>
+    <label><input type="checkbox" name="shelterType" value="避難所" checked> 避難所</label>
+  </div>
+</div>
+
+<!-- 災害種類フィルター（新規追加部分） -->
+<div class="filter-section">
+  <h4>対応災害で絞り込み</h4>
+  <div class="disaster-filter-grid">
+    <label><input type="checkbox" name="disasterType" value="洪水" checked> 洪水</label>
+    <label><input type="checkbox" name="disasterType" value="崖崩、土石流及び地滑" checked> 崖崩れ/土石流</label>
+    <label><input type="checkbox" name="disasterType" value="高潮" checked> 高潮</label>
+    <label><input type="checkbox" name="disasterType" value="地震" checked> 地震</label>
+    <label><input type="checkbox" name="disasterType" value="津波" checked> 津波</label>
+    <label><input type="checkbox" name="disasterType" value="大規模火災" checked> 大規模火災</label>
+    <label><input type="checkbox" name="disasterType" value="内水氾濫" checked> 内水氾濫</label>
+    <label><input type="checkbox" name="disasterType" value="火山現象" checked> 火山現象</label>
+  </div>
+</div>
 
       <!-- 操作ボタン -->
       <div class="action-buttons">
