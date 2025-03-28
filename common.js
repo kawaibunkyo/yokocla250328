@@ -32,25 +32,16 @@ function initializeCesium() {
     console.log('地図の背景画像を設定します');
     
     // デフォルトの航空写真レイヤーを削除
-    //viewer.imageryLayers.removeAll();
+    viewer.imageryLayers.removeAll();
     
 // 標準地図を追加（航空写真）
-/*
 viewer.imageryLayers.addImageryProvider(
   new Cesium.UrlTemplateImageryProvider({
     url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/1/0/0.jpg',
     maximumLevel: 18,
     credit: '地理院タイル'
   })
-    */
-  viewer = new Cesium.Viewer('cesiumContainer', {
-    imageryProvider: Cesium.createWorldImagery({
-      style: Cesium.IonWorldImageryStyle.AERIAL // 航空写真スタイル
-    }),
-    terrainProvider: Cesium.createWorldTerrain(),
-    // その他の設定...
-  });
-
+);
     
     console.log('地図の背景画像を設定しました');
   } catch (error) {
