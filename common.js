@@ -37,7 +37,7 @@ function initializeCesium() {
 // 標準地図を追加（航空写真）
 viewer.imageryLayers.addImageryProvider(
   new Cesium.UrlTemplateImageryProvider({
-    url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
+    url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/1/0/0.jpg',
     maximumLevel: 18,
     credit: '地理院タイル'
   })
