@@ -87,63 +87,79 @@
       </div>
     </div>
     
-    <!-- サイドメニュー避難所モード -->
-    <div id="evacuationSideMenu" class="side-menu" style="display: none;">
-      <div id="evacuationFilterContainer">
-        <h3>避難所フィルター</h3>
-        
-        <!-- 避難所種類のフィルター -->
-        <div class="filter-section">
-          <h4>避難所の種類</h4>
-          <div>
-            <label><input type="checkbox" name="shelterType" value="避難所" checked> 避難所</label>
-          </div>
-        </div>
-        
-       <!-- 避難所の種類フィルター部分（既存部分を修正） -->
-<div class="filter-section">
-  <h4>避難所の種類</h4>
-  <div>
-    <label><input type="checkbox" name="shelterType" value="避難所" checked> 避難所</label>
-  </div>
-</div>
-
-<!-- 災害種類フィルター（新規追加部分） -->
-<div class="filter-section">
-  <h4>対応災害で絞り込み</h4>
-  <div class="disaster-filter-grid">
-    <label><input type="checkbox" name="disasterType" value="洪水" checked> 洪水</label>
-    <label><input type="checkbox" name="disasterType" value="崖崩、土石流及び地滑" checked> 崖崩れ/土石流</label>
-    <label><input type="checkbox" name="disasterType" value="高潮" checked> 高潮</label>
-    <label><input type="checkbox" name="disasterType" value="地震" checked> 地震</label>
-    <label><input type="checkbox" name="disasterType" value="津波" checked> 津波</label>
-    <label><input type="checkbox" name="disasterType" value="大規模火災" checked> 大規模火災</label>
-    <label><input type="checkbox" name="disasterType" value="内水氾濫" checked> 内水氾濫</label>
-    <label><input type="checkbox" name="disasterType" value="火山現象" checked> 火山現象</label>
-  </div>
-</div>
-
-      <!-- 操作ボタン -->
-      <div class="action-buttons">
-        <button id="getCurrentLocationEvacBtn" class="btn">現在地を取得</button>
-        <button id="resetViewEvacBtn" class="btn">表示をリセット</button>
-        <button id="toggleBuildingsBtn" class="btn">建物表示切替</button>
-      </div>
-      
-      <!-- 最寄り避難所情報 -->
-      <div id="nearestShelterInfo" class="info-panel">
-        <h3>最寄りの避難所</h3>
-        <div id="shelterDetails">
-          <p>現在地を取得すると、最寄りの避難所情報が表示されます。</p>
-        </div>
-      </div>
-
-      <!-- 飲食店モードに切り替え -->
-      <div class="mode-switch">
-        <button id="switchToRestaurantBtn" class="btn btn-large">飲食店モードへ切り替え</button>
-        <p class="mode-description">通常時は飲食店モードで横浜の飲食店を探索できます</p>
+    <!-- サイドメニュー避難所モード（修正版） -->
+<div id="evacuationSideMenu" class="side-menu" style="display: none;">
+  <div id="evacuationFilterContainer">
+    <h3>避難所フィルター</h3>
+    
+    <!-- 避難所種類のフィルター（重複していた部分を削除） -->
+    <div class="filter-section">
+      <h4>避難所の種類</h4>
+      <div>
+        <label><input type="checkbox" name="shelterType" value="避難所" checked> 避難所</label>
       </div>
     </div>
+    
+    <!-- 避難所レベルフィルター -->
+    <div class="filter-section">
+      <h4>避難所レベル</h4>
+      <div class="range-filter">
+        <input type="range" id="levelFilter" min="1" max="5" value="1" step="1">
+        <span>レベル <span id="levelValue">1</span> 以上</span>
+      </div>
+    </div>
+
+    <!-- 災害種類フィルター -->
+    <div class="filter-section">
+      <h4>対応災害で絞り込み</h4>
+      <div class="disaster-filter-grid">
+        <label><input type="checkbox" name="disasterType" value="洪水" checked> 洪水</label>
+        <label><input type="checkbox" name="disasterType" value="崖崩、土石流及び地滑" checked> 崖崩れ/土石流</label>
+        <label><input type="checkbox" name="disasterType" value="高潮" checked> 高潮</label>
+        <label><input type="checkbox" name="disasterType" value="地震" checked> 地震</label>
+        <label><input type="checkbox" name="disasterType" value="津波" checked> 津波</label>
+        <label><input type="checkbox" name="disasterType" value="大規模火災" checked> 大規模火災</label>
+        <label><input type="checkbox" name="disasterType" value="内水氾濫" checked> 内水氾濫</label>
+        <label><input type="checkbox" name="disasterType" value="火山現象" checked> 火山現象</label>
+      </div>
+    </div>
+    
+    <!-- 移動手段選択 -->
+    <div class="filter-section">
+      <h4>移動手段</h4>
+      <div>
+        <label><input type="radio" name="transportMode" value="foot-walking" checked> 徒歩</label>
+      </div>
+      <div>
+        <label><input type="radio" name="transportMode" value="driving-car"> 自動車</label>
+      </div>
+      <div>
+        <label><input type="radio" name="transportMode" value="cycling-regular"> 自転車</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 操作ボタン -->
+  <div class="action-buttons">
+    <button id="getCurrentLocationEvacBtn" class="btn">現在地を取得</button>
+    <button id="resetViewEvacBtn" class="btn">表示をリセット</button>
+    <button id="toggleBuildingsBtn" class="btn">建物表示切替</button>
+  </div>
+  
+  <!-- 最寄り避難所情報 -->
+  <div id="nearestShelterInfo" class="info-panel">
+    <h3>最寄りの避難所</h3>
+    <div id="shelterDetails">
+      <p>現在地を取得すると、最寄りの避難所情報が表示されます。</p>
+    </div>
+  </div>
+
+  <!-- 飲食店モードに切り替え -->
+  <div class="mode-switch">
+    <button id="switchToRestaurantBtn" class="btn btn-large">飲食店モードへ切り替え</button>
+    <p class="mode-description">通常時は飲食店モードで横浜の飲食店を探索できます</p>
+  </div>
+</div>
     
     <!-- Cesiumコンテナ -->
     <div id="cesiumContainer"></div>
