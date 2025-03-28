@@ -1,554 +1,91 @@
-/* 全体のリセット - 既存部分 */
-body, h1, h2, h3, h4, p, ul, li, a {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html, body {
-  height: 100%;
-  overflow: hidden;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background-color: #f9f9f9;
-}
-
-/* ヘッダー - 既存部分 */
-header {
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  padding: 0.5rem;
-  text-align: center;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 100;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-header h1 {
-  font-size: 1.5rem;
-  margin: 0;
-}
-
-nav ul {
-  display: flex;
-  justify-content: center;
-  list-style: none;
-  margin: 0.5rem 0 0;
-}
-
-nav ul li {
-  margin: 0 1rem;
-}
-
-nav ul li a {
-  color: #fff;
-  text-decoration: none;
-  font-size: 0.9rem;
-  padding: 0.3rem 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-nav ul li a:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-nav ul li a.active {
-  background-color: rgba(255, 255, 255, 0.3);
-  font-weight: bold;
-}
-
-/* サイドメニュー共通スタイル - 既存部分 */
-.side-menu {
-  position: absolute;
-  top: 60px; /* ヘッダーの高さに合わせる */
-  left: 0;
-  width: 300px;
-  height: calc(100% - 60px);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 1rem;
-  overflow-y: auto;
-  z-index: 50;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-}
-
-/* フィルターセクション - 既存部分 */
-.filter-section {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.filter-section h4 {
-  margin-bottom: 0.5rem;
-  color: #ffffff;
-  font-size: 1rem;
-}
-
-.filter-section div {
-  margin: 0.3rem 0;
-}
-
-/* レンジスライダー - 既存部分 */
-.range-filter {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.range-filter input[type="range"] {
-  width: 100%;
-  margin: 0.5rem 0;
-}
-
-/* ボタン - 既存部分 */
-.btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background-color: #333333;
-  color: white;
-  border: 1px solid #666666;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  margin-right: 0.5rem;
-  margin-bottom: 0.5rem;
-  transition: background-color 0.2s;
-}
-
-.btn:hover {
-  background-color: #555555;
-}
-
-.btn-large {
-  width: 100%;
-  padding: 0.8rem;
-  margin-top: 1rem;
-  font-size: 1rem;
-  background-color: #4a6da7;
-}
-
-.btn-large:hover {
-  background-color: #5a7db7;
-}
-
-.action-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
-}
-
-/* モード切り替え - 既存部分 */
-.mode-switch {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.mode-description {
-  font-size: 0.8rem;
-  color: #aaa;
-  margin-top: 0.5rem;
-  text-align: center;
-}
-
-/* 情報パネル - 既存部分に改良 */
-.info-panel {
-  background-color: rgba(40, 40, 40, 0.8);
-  border-radius: 4px;
-  padding: 1rem;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.info-panel h3 {
-  color: #ffffff;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 0.3rem;
-}
-
-/* 飲食店情報スタイル - 新規追加 */
-.restaurant-info {
-  margin-bottom: 1rem;
-}
-
-.restaurant-info .restaurant-name {
-  font-size: 1.1rem;
-  color: #ffcc00;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-}
-
-.restaurant-info p {
-  margin: 0.3rem 0;
-}
-
-.route-info {
-  margin-top: 1rem;
-  padding-top: 0.8rem;
-  border-top: 1px dashed rgba(255, 255, 255, 0.3);
-}
-
-.route-info p {
-  color: #8cc8ff;
-  font-size: 0.95rem;
-}
-
-/* 避難所情報スタイル - 新規追加 */
-.shelter-info {
-  margin-bottom: 1rem;
-}
-
-.shelter-info .shelter-name {
-  font-size: 1.1rem;
-  color: #77ff77;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-}
-
-.shelter-info p {
-  margin: 0.3rem 0;
-}
-
-/* Cesiumコンテナ - 既存部分 */
-#cesiumContainer {
-  position: absolute;
-  top: 60px; /* ヘッダーの高さに合わせる */
-  left: 300px; /* サイドメニューの幅に合わせる */
-  width: calc(100% - 300px);
-  height: calc(100% - 60px);
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-/* 凡例 - 既存部分とスタイル改善 */
-.legend {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 1rem;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 40;
-}
-
-.legend h4 {
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 0.3rem;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin: 0.3rem 0;
-}
-
-.legend-color {
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-  border-radius: 3px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.legend-note {
-  margin-top: 0.5rem;
-  font-size: 0.8rem;
-  font-style: italic;
-  color: #cccccc;
-}
-
-/* 価格表示の色設定 - 既存部分 */
-#check1 {  
-  color: hsl(120, 70%, 50%);
-}
-#check2 {  
-  color: hsl(80, 70%, 50%);
-}
-#check3 {  
-  color: hsl(40, 70%, 50%);
-}
-#check4 {  
-  color: hsl(0, 70%, 50%);
-}
-
-/* 評価表示の色設定 - 既存部分 */
-#hosi1 {  
-  color: hsl(80, 20%, 50%);
-}
-#hosi2 {  
-  color: hsl(80, 40%, 50%);
-}
-#hosi3 {  
-  color: hsl(80, 60%, 50%);
-}
-#hosi4 {  
-  color: hsl(80, 80%, 50%);
-}
-#hosi5 {  
-  color: hsl(80, 100%, 50%);
-}
-
-/* 検索ボックス - 既存部分とスタイル改良 */
-#searchBox {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #555;
-  border-radius: 4px;
-  background-color: #222;
-  color: white;
-  transition: border-color 0.3s;
-}
-
-#searchBox:focus {
-  border-color: #4a6da7;
-  outline: none;
-  box-shadow: 0 0 3px #4a6da7;
-}
-
-/* 検索結果 - 既存部分とスタイル改良 */
-#resultsList {
-  max-height: 200px;
-  overflow-y: auto;
-  margin-top: 0.5rem;
-  border-radius: 4px;
-  background-color: rgba(50, 50, 50, 0.6);
-}
-
-.result-item {
-  padding: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.result-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.result-item p {
-  margin: 0;
-}
-
-.result-rating {
-  font-size: 0.85rem;
-  color: #ffcc00;
-}
-
-.more-results {
-  text-align: center;
-  font-size: 0.8rem;
-  color: #aaa;
-  padding: 0.3rem;
-  font-style: italic;
-}
-
-/* モード表示 - 既存部分とスタイル改良 */
-#modeIndicator {
-  position: absolute;
-  top: 70px;
-  right: 20px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  z-index: 90;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s;
-}
-
-/* モードによって色を変える - 新規追加 */
-body[data-mode="restaurant"] #modeIndicator {
-  background-color: rgba(0, 100, 200, 0.7);
-}
-
-body[data-mode="evacuation"] #modeIndicator {
-  background-color: rgba(200, 50, 0, 0.7);
-}
-
-/* ローディングインジケーター - 新規追加 */
-.loading-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 6px;
-  z-index: 1000;
-  text-align: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-.loading-indicator p {
-  margin: 0.5rem 0;
-}
-
-.loading-spinner {
-  display: inline-block;
-  width: 30px;
-  height: 30px;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #fff;
-  animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* レスポンシブデザイン - 既存部分 */
-@media (max-width: 768px) {
-  header {
-    padding: 0.3rem;
-  }
-  
-  header h1 {
-    font-size: 1.2rem;
-  }
-  
-  nav ul li {
-    margin: 0 0.5rem;
-  }
-  
-  .side-menu {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 250px;
-    overflow-y: auto;
-    padding: 0.5rem;
-  }
-  
-  #cesiumContainer {
-    top: 50px;
-    left: 0;
-    width: 100%;
-    height: calc(100% - 300px);
-  }
-  
-  .btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-  }
-  
-  .legend {
-    bottom: 260px;
-    right: 10px;
-    padding: 0.5rem;
-    max-width: 150px;
-    font-size: 0.8rem;
-  }
-  
-  #modeIndicator {
-    top: 60px;
-    left: 10px;
-    right: auto;
-  }
-}
-
-/* アクセシビリティ対応 - 既存部分 */
-.btn:focus,
-input[type="checkbox"]:focus,
-input[type="radio"]:focus,
-input[type="range"]:focus {
-  outline: 2px solid #ffffff;
-  outline-offset: 2px;
-}
-
-/* ツールチップスタイル - 新規追加 */
+/* 情報ボックス（詳細表示ウィンドウ）の幅を広げる */
 .cesium-infoBox {
+  max-width: 500px !important; /* 従来の350pxから広げる */
+  width: 500px !important;
   background-color: rgba(38, 38, 38, 0.95) !important;
   border: 1px solid rgba(180, 180, 180, 0.2) !important;
   border-radius: 6px !important;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5) !important;
-  max-width: 350px !important;
 }
 
+/* 情報ボックスのタイトル部分のスタイルを調整 */
 .cesium-infoBox-title {
   background-color: rgba(60, 60, 60, 0.9) !important;
   color: white !important;
   border-top-left-radius: 6px !important;
   border-top-right-radius: 6px !important;
-  padding: 8px 10px !important;
-  font-size: 14px !important;
+  padding: 10px 12px !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
 }
 
-.cesium-infoBox-bodyless .cesium-infoBox-title {
-  border-bottom-left-radius: 6px !important;
-  border-bottom-right-radius: 6px !important;
-}
-
+/* 情報ボックスの本文部分 */
 .cesium-infoBox-body {
-  padding: 10px !important;
+  padding: 12px !important;
   color: #eee !important;
   background-color: transparent !important;
+  max-height: 400px !important; /* 高さも少し広げる */
 }
 
-.cesium-infoBox-description {
-  color: #eee !important;
+/* 情報ボックス内のテーブルスタイル改良 */
+.cesium-infoBox-description table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 12px !important;
 }
 
-.cesium-infoBox-description a {
-  color: #8cb8ff !important;
+.cesium-infoBox-description th {
+  text-align: left !important;
+  padding: 8px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #aaa !important;
+  width: 30% !important; /* 左側の列幅を固定 */
+  vertical-align: top !important;
+  font-weight: bold !important;
 }
 
-.cesium-infoBox-description a:hover {
-  color: #afd0ff !important;
+.cesium-infoBox-description td {
+  padding: 8px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  word-break: break-word !important;
+  line-height: 1.4 !important;
 }
 
-/* ボタン改良 - 新規追加 */
+/* ボタン改良 */
 .cesium-infoBox-description button {
   background-color: #4a6da7 !important;
   color: white !important;
   border: none !important;
-  padding: 5px 10px !important;
-  margin: 5px 0 !important;
+  padding: 8px 12px !important;
+  margin: 8px 8px 8px 0 !important;
   border-radius: 4px !important;
   cursor: pointer !important;
   transition: background-color 0.2s !important;
+  font-size: 14px !important;
 }
 
 .cesium-infoBox-description button:hover {
   background-color: #5a7db7 !important;
 }
 
-/* テーブルスタイル改良 - 新規追加 */
-.cesium-infoBox-description table {
-  width: 100% !important;
-  border-collapse: collapse !important;
-  margin-bottom: 10px !important;
+/* リンクの色調整 */
+.cesium-infoBox-description a {
+  color: #8cb8ff !important;
+  text-decoration: none !important;
 }
 
-.cesium-infoBox-description th {
-  text-align: left !important;
-  padding: 5px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: #aaa !important;
-  width: 30% !important;
-  vertical-align: top !important;
+.cesium-infoBox-description a:hover {
+  color: #afd0ff !important;
+  text-decoration: underline !important;
 }
 
-.cesium-infoBox-description td {
-  padding: 5px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  word-break: break-word !important;
+/* 詳細ウィンドウの閉じるボタン */
+.cesium-infoBox-close {
+  color: #ffffff !important;
+  opacity: 0.7 !important;
+}
+
+.cesium-infoBox-close:hover {
+  color: #ffffff !important;
+  opacity: 1.0 !important;
 }
