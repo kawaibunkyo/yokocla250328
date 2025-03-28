@@ -10,27 +10,52 @@ Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOi
 
 // 初期化関数
 function initializeCesium() {
-  // Cesium Viewerの初期化（地形プロバイダを設定）
-  viewer = new Cesium.Viewer('cesiumContainer', {
-    terrainProvider: Cesium.createWorldTerrain({
-      requestWaterMask: true,  // 水面効果を有効化
-      requestVertexNormals: true // 法線マップを有効化（光の反射効果向上）
-    }),
-    animation: false,
-    baseLayerPicker: false,
-    fullscreenButton: false,
-    vrButton: false,
-    homeButton: true,
-    infoBox: true,
-    sceneModePicker: false,
-    selectionIndicator: true,
-    timeline: false,
-    navigationHelpButton: false,
-    scene3DOnly: true,
-    skyBox: false,
-    skyAtmosphere: false, // 大気効果をオフ
-  });
+  console.log('Cesium初期化処理を開始します');
+  
+  try {
+    // Cesium Viewerの初期化（地形プロバイダを設定）
+    viewer = new Cesium.Viewer('cesiumContainer', {
+      terrainProvider: Cesium.createWorldTerrain({
+        requestWaterMask: true,  // 水面効果を有効化
+        requestVertexNormals: true // 法線マップを有効化（光の反射効果向上）
+      }),
+      animation: false,
+      baseLayerPicker: false,
+      fullscreenButton: false,
+      vrButton: false,
+      homeButton: true,
+      infoBox: true,
+      sceneModePicker: false,
+      selectionIndicator: true,
+      timeline: false,
+      navigationHelpButton: false,
+      scene3DOnly: true,
+      skyBox: false,
+      skyAtmosphere: false, // 大気効果をオフ
+    });
 
+    console.log('Cesium Viewer初期化完了');
+    
+    // 背景画像設定
+    setupImageryLayers();
+    
+    // 3D建物データ読み込み
+    loadCityModel();
+    
+    // 初期視点を設定
+    resetView();
+    
+    // デバッグ用：地球が表示されているか確認
+    console.log('地球の表示状態:', viewer.scene.globe.show);
+    console.log('イメージレイヤー数:', viewer.imageryLayers.length);
+  } catch (error) {
+    console.error('Cesiumの初期化中にエラーが発生しました:', error);
+    alert('地図の初期化に失敗しました。ページをリロードしてください。');
+  }
+}
+
+// 背景画像レイヤーの設定
+function setupImageryLayers() {
   try {
     console.log('地図の背景画像を設定します');
     
@@ -45,24 +70,6 @@ function initializeCesium() {
         credit: '地理院タイル'
       })
     );
-    
-    // オプション2: 万が一オプション1が機能しない場合のバックアップ
-    // Bing Maps航空写真を追加
-    if (!seamlessPhoto) {
-      viewer.imageryLayers.addImageryProvider(
-        new Cesium.BingMapsImageryProvider({
-          url: 'https://dev.virtualearth.net',
-          key: 'AhYeeRawPr7lVrIgSHLG5lbGO9e8Gx6FhzMGLKLxV86H8HFwegkr8I6Y_qEBEeGQ',
-          mapStyle: Cesium.BingMapsStyle.AERIAL
-        })
-      );
-    }
-    
-    // 地形の強調表示（高さを強調）
-    viewer.scene.globe.terrainExaggeration = 1.0; // 1.0は等倍、大きくすると地形の起伏が強調される
-    
-    // 地形の品質設定
-    viewer.scene.globe.maximumScreenSpaceError = 2.0; // 低い値ほど高品質（デフォルトは2.0）
     
     console.log('地図の背景画像を設定しました');
   } catch (error) {
@@ -79,7 +86,10 @@ function initializeCesium() {
       console.error('フォールバックの設定にも失敗しました:', fallbackError);
     }
   }
+}
 
+// 3D建物データの読み込み
+function loadCityModel() {
   try {
     console.log('3D建物データを読み込みます');
     
@@ -100,16 +110,8 @@ function initializeCesium() {
   } catch (error) {
     console.error('3D建物データの設定中にエラーが発生しました:', error);
   }
-
-  // 初期視点を設定
-  resetView();
-  
-  // デバッグ用：地球が表示されているか確認
-  console.log('地球の表示状態:', viewer.scene.globe.show);
-  console.log('イメージレイヤー数:', viewer.imageryLayers.length);
 }
 
-// 以下、既存のコードは変更なし
 // 視点をリセットする
 function resetView() {
   viewer.camera.flyTo({
