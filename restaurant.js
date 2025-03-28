@@ -82,21 +82,27 @@ function displayRestaurants(restaurants) {
       
       // 評価に基づいて高さを変更（評価が高いほど高い）
       const baseHeight = 20; // 基本の高さ
-      const ratingMultiplier = 100; // 評価1つあたりの高さ
+      const ratingMultiplier = 50; // 評価1つあたりの高さ
       
       // 評価の取得と正規化（1〜5の範囲に）
-      const rating = item.rating === "N/A" || !item.rating ? 1 : Math.min(Math.max(parseFloat(item.rating), 1), 5);
+      const rating = item.rating === undefined || item.rating === "N/A" || !item.rating ? 
+        1 : Math.min(Math.max(parseFloat(item.rating), 1), 5);
       
-      // 高さの計算（評価1なら50、評価5なら250）
-      const height = baseHeight + (rating - 1) * ratingMultiplier;
+      // 高さの計算（評価1なら20+50=70、評価5なら20+50*5=270）
+      const height = baseHeight + (rating * ratingMultiplier);
       
       // 価格帯の取得と正規化
-      const priceLevel = item.price_level === "N/A" || !item.price_level ? 1 : Math.min(Math.max(parseInt(item.price_level, 10), 1), 4);
+      const priceLevel = item.price_level === undefined || item.price_level === "N/A" || !item.price_level ? 
+        1 : Math.min(Math.max(parseInt(item.price_level, 10), 1), 4);
       
-      // 価格帯に基づいた色相の計算（安い：緑、高い：赤紫）
-      const hue = 120 - ((priceLevel - 1) / 3) * 160; // 120（緑）から-40（赤紫）へ
-      const saturation = 60; // 彩度は固定
-      const lightness = 50; // 明度も固定
+      // 価格帯に基づいた色相の計算（安い：緑、高い：赤）
+      const hue = 120 - ((priceLevel - 1) / 3) * 120; // 120（緑）から0（赤）へ
+      
+      // 評価に基づいた彩度の計算（評価が高いほど鮮やか）
+      const saturation = 40 + (rating / 5) * 40; // 40%〜80%
+      
+      // 明度は固定
+      const lightness = 50;
       
       // HSL色の作成
       const colorHSL = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
@@ -141,31 +147,33 @@ function displayRestaurants(restaurants) {
           <button onclick="switchToEvacuation(${lng}, ${lat})">この場所から避難所を探す</button>
       `;
       
+      // 飲食店のプロパティを設定
+      const restaurantProperties = {
+        isRestaurant: true,
+        restaurantData: item,
+        priceLevel: priceLevel,
+        rating: rating
+      };
+      
       // エンティティとして3D四角柱を追加
-      viewer.entities.add({
+      const entity = viewer.entities.add({
         name: name,
         description: description,
-        position: Cesium.Cartesian3.fromDegrees(
-          lng,
-          lat,
-          height / 2  // 高さの半分を中心位置に設定
-        ),
+        position: Cesium.Cartesian3.fromDegrees(lng, lat, height/2),
         box: {
-          dimensions: new Cesium.Cartesian3(20, 20, height), // 幅・奥行きは20に拡大、高さは評価による
-          material: color, // 価格帯に基づく色
+          dimensions: new Cesium.Cartesian3(30, 30, height),
+          material: color.withAlpha(0.7),
           outline: true,
           outlineColor: Cesium.Color.BLACK
         },
-        properties: {
-          isRestaurant: true,
-          restaurantData: item,
-          priceLevel: priceLevel,
-          rating: rating
-        }
+        properties: restaurantProperties
       });
       
+      // 元の飲食店データへの参照を保持
+      entity.originalRestaurant = item;
+      
       if (index === 0) {
-        console.log(`最初の飲食店 "${name}" を追加しました (位置: ${lng}, ${lat}, 高さ: ${height})`);
+        console.log(`最初の飲食店 "${name}" を追加しました (位置: ${lng}, ${lat}, 高さ: ${height}, 色: ${colorHSL})`);
       }
     } catch (error) {
       console.error(`店舗 ${index} の表示中にエラーが発生しました:`, error);
