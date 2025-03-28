@@ -97,7 +97,7 @@ function displayShelters(shelters) {
       description: description,
       position: Cesium.Cartesian3.fromDegrees(coords[0], coords[1], height/2),
       box: {
-        dimensions: new Cesium.Cartesian3(20, 20, height),
+        dimensions: new Cesium.Cartesian3(40, 40, height),
         material: color.withAlpha(0.7),
         outline: true,
         outlineColor: Cesium.Color.BLACK
