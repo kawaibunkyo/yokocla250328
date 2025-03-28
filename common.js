@@ -16,11 +16,10 @@ function initializeCesium() {
   console.log('Cesium初期化処理を開始します');
   
   try {
-    // Cesium Viewerの初期化
+    // 参照用に添付ファイルのコードをそのまま使用する方法
     viewer = new Cesium.Viewer('cesiumContainer', {
-      terrainProvider: Cesium.createWorldTerrain({
-        requestWaterMask: true,  // 水面効果を有効化
-        requestVertexNormals: true // 法線マップを有効化（光の反射効果向上）
+      terrainProvider: new Cesium.CesiumTerrainProvider({
+        url: Cesium.IonResource.fromAssetId(770371),
       }),
       animation: false,
       baseLayerPicker: false,
@@ -33,16 +32,8 @@ function initializeCesium() {
       timeline: false,
       navigationHelpButton: false,
       scene3DOnly: true,
-      skyBox: false,        // 空のテクスチャを無効化
-      skyAtmosphere: false, // 大気効果をオフ
     });
 
-    // 既定の地球イメージを削除し、背景を透明にする
-    viewer.scene.globe.baseColor = Cesium.Color.TRANSPARENT;
-    // 地表面を暗くする（地面が完全に透明になるのを防ぐ）
-    viewer.scene.globe.translucency.enabled = true;
-    viewer.scene.globe.translucency.frontFaceAlpha = 0.1;
-    
     console.log('Cesium Viewer初期化完了');
     
     // 背景画像設定
@@ -68,32 +59,17 @@ function setupImageryLayers() {
   try {
     console.log('地図の背景画像を設定します');
     
-    // デフォルトの航空写真レイヤーを削除
+    // デフォルトの画像レイヤーを削除
     viewer.imageryLayers.removeAll();
     
-    // 地理院タイルの航空写真を追加
-    const seamlessPhoto = viewer.imageryLayers.addImageryProvider(
-      new Cesium.UrlTemplateImageryProvider({
-        url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
-        maximumLevel: 19,
-        credit: '地理院タイル'
-      })
-    );
+    // PLATEAU-Orthoの参照（添付ファイルから）
+    const imageProvider = new Cesium.UrlTemplateImageryProvider({
+      url: 'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/ortho/tiles/{z}/{x}/{y}.png',
+      maximumLevel: 19,
+    });
+    viewer.scene.imageryLayers.addImageryProvider(imageProvider);
     
-    // PLATEAU-Orthoの参照（添付ファイルからの参考）
-    try {
-      const plateauOrtho = viewer.imageryLayers.addImageryProvider(
-        new Cesium.UrlTemplateImageryProvider({
-          url: 'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/ortho/tiles/{z}/{x}/{y}.png',
-          maximumLevel: 19,
-        })
-      );
-      console.log('PLATEAU-Orthoを追加しました');
-    } catch (orthoError) {
-      console.warn('PLATEAU-Orthoの追加に失敗しました:', orthoError);
-    }
-    
-    console.log('地図の背景画像を設定しました');
+    console.log('PLATEAU-Orthoの背景画像を設定しました');
   } catch (error) {
     console.error('地図の背景画像設定中にエラーが発生しました:', error);
     
@@ -115,7 +91,7 @@ function loadCityModel() {
   try {
     console.log('3D建物データを読み込みます');
     
-    // 3D Tilesデータの参照（PLATEAU - 建物データ）
+    // 3D Tilesデータの参照（PLATEAU - 建物データ）- 添付ファイルと同じ方法で
     cityModel = viewer.scene.primitives.add(
       new Cesium.Cesium3DTileset({
         url: 'https://plateau.geospatial.jp/main/data/3d-tiles/bldg/14100_yokohama/low_resolution/tileset.json',
