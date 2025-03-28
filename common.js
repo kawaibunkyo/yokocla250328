@@ -4,6 +4,9 @@ let currentMode = 'restaurant'; // 'restaurant' または 'evacuation'
 let cityModel = null;
 let buildingsVisible = true;
 let currentLocation = null;
+// デフォルトの初期位置（N35°27'15.73" E139°37'51.81"）
+const DEFAULT_LATITUDE = 35.454369;
+const DEFAULT_LONGITUDE = 139.631058;
 
 // Cesium ionのアクセストークン
 Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5N2UyMjcwOS00MDY1LTQxYjEtYjZjMy00YTU0ZTg5MmViYWQiLCJpZCI6ODAzMDYsImlhdCI6MTY0Mjc0ODI2MX0.dkwAL1CcljUV7NA7fDbhXXnmyZQU_c-G5zRx8PtEcxE';
@@ -43,7 +46,7 @@ function initializeCesium() {
     loadCityModel();
     
     // 初期視点を設定
-    resetView();
+    setDefaultView();
     
     // デバッグ用：地球が表示されているか確認
     console.log('地球の表示状態:', viewer.scene.globe.show);
@@ -112,7 +115,28 @@ function loadCityModel() {
   }
 }
 
-// 視点をリセットする
+// デフォルト視点を設定する（初期位置として使用）
+function setDefaultView() {
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(DEFAULT_LONGITUDE, DEFAULT_LATITUDE, 1000.0),
+    orientation: {
+      heading: Cesium.Math.toRadians(0.0),
+      pitch: Cesium.Math.toRadians(-45.0),
+      roll: 0.0
+    }
+  });
+  
+  // 初期位置をcurrentLocationに設定
+  currentLocation = {
+    longitude: DEFAULT_LONGITUDE,
+    latitude: DEFAULT_LATITUDE
+  };
+  
+  // 初期位置のマーカーを表示
+  showCurrentLocationMarker(DEFAULT_LONGITUDE, DEFAULT_LATITUDE);
+}
+
+// 視点をリセットする（全体俯瞰用）
 function resetView() {
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(139.6300, 35.3500, 7000.0),
@@ -128,6 +152,9 @@ function resetView() {
 function getCurrentLocation() {
   return new Promise((resolve, reject) => {
     if (navigator.geolocation) {
+      // ローディングインジケータを表示
+      showLoadingIndicator('位置情報を取得中...');
+      
       navigator.geolocation.getCurrentPosition(
         position => {
           const longitude = position.coords.longitude;
@@ -139,19 +166,90 @@ function getCurrentLocation() {
             latitude
           };
           
+          // ローディングインジケータを非表示
+          hideLoadingIndicator();
+          
+          console.log(`位置情報を取得しました: 緯度=${latitude}, 経度=${longitude}`);
           resolve(currentLocation);
         },
         error => {
           console.error('位置情報の取得に失敗しました:', error);
-          alert('位置情報を取得できませんでした。位置情報の使用を許可してください。');
-          reject(error);
+          
+          // ローディングインジケータを非表示
+          hideLoadingIndicator();
+          
+          // エラーメッセージを設定
+          let errorMessage = '位置情報を取得できませんでした。';
+          
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage += '位置情報の使用を許可してください。';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage += '位置情報が利用できません。';
+              break;
+            case error.TIMEOUT:
+              errorMessage += '位置情報の取得がタイムアウトしました。';
+              break;
+          }
+          
+          alert(errorMessage);
+          
+          // エラーが発生した場合はデフォルト位置を使用
+          console.log('デフォルト位置を使用します');
+          currentLocation = {
+            longitude: DEFAULT_LONGITUDE,
+            latitude: DEFAULT_LATITUDE
+          };
+          
+          resolve(currentLocation);
+        },
+        {
+          enableHighAccuracy: true, // 高精度を有効
+          timeout: 10000,          // 10秒でタイムアウト
+          maximumAge: 0            // キャッシュを使用しない
         }
       );
     } else {
       alert('このブラウザはGeolocationをサポートしていません');
-      reject(new Error('Geolocation not supported'));
+      
+      // ブラウザが位置情報をサポートしていない場合はデフォルト位置を使用
+      console.log('デフォルト位置を使用します');
+      currentLocation = {
+        longitude: DEFAULT_LONGITUDE,
+        latitude: DEFAULT_LATITUDE
+      };
+      
+      resolve(currentLocation);
     }
   });
+}
+
+// ローディングインジケータを表示
+function showLoadingIndicator(message) {
+  // 既存のローディングインジケータを削除
+  const existingIndicator = document.querySelector('.loading-indicator');
+  if (existingIndicator) {
+    existingIndicator.remove();
+  }
+  
+  // 新しいローディングインジケータを作成
+  const loadingIndicator = document.createElement('div');
+  loadingIndicator.className = 'loading-indicator';
+  loadingIndicator.innerHTML = `
+    <div class="loading-spinner"></div>
+    <p>${message || 'Loading...'}</p>
+  `;
+  
+  document.body.appendChild(loadingIndicator);
+}
+
+// ローディングインジケータを非表示
+function hideLoadingIndicator() {
+  const loadingIndicator = document.querySelector('.loading-indicator');
+  if (loadingIndicator) {
+    loadingIndicator.remove();
+  }
 }
 
 // 現在地マーカーを表示
@@ -229,15 +327,25 @@ function getTerrainHeight(longitude, latitude) {
 async function getElevatedPositions(coordinates) {
   const positions = [];
   
-  // 各座標の高度を地形に基づいて取得
-  for (let i = 0; i < coordinates.length; i++) {
-    const [longitude, latitude] = coordinates[i];
-    
-    // Cesiumの地形から高さを取得
-    const height = await getTerrainHeight(longitude, latitude);
-    
-    // 地表から2m上の高さに設定（見やすさのため）
-    positions.push(Cesium.Cartesian3.fromDegrees(longitude, latitude, height + 2));
+  // ローディングインジケータを表示
+  showLoadingIndicator('経路データを処理中...');
+  
+  try {
+    // 各座標の高度を地形に基づいて取得
+    for (let i = 0; i < coordinates.length; i++) {
+      const [longitude, latitude] = coordinates[i];
+      
+      // Cesiumの地形から高さを取得
+      const height = await getTerrainHeight(longitude, latitude);
+      
+      // 地表から2m上の高さに設定（見やすさのため）
+      positions.push(Cesium.Cartesian3.fromDegrees(longitude, latitude, height + 2));
+    }
+  } catch (error) {
+    console.error('座標の高さ処理中にエラーが発生しました:', error);
+  } finally {
+    // ローディングインジケータを非表示
+    hideLoadingIndicator();
   }
   
   return positions;
@@ -248,6 +356,9 @@ async function showRoute(start, end, transportMode = 'foot-walking') {
   // 既存のルートがあれば削除
   removeEntityByName('避難経路');
   removeEntityByName('飲食店経路');
+  
+  // ローディングインジケータを表示
+  showLoadingIndicator('経路を検索中...');
   
   // APIキー
   const apiKey = '5b3ce3597851110001cf62483d4f0c5c26f94f3291f93f9de89c0af7'; // OpenRouteService APIキー
@@ -265,6 +376,9 @@ async function showRoute(start, end, transportMode = 'foot-walking') {
     }
     
     const data = await response.json();
+    
+    // ローディングインジケータを非表示
+    hideLoadingIndicator();
     
     // レスポンスを確認
     if (!data.features || data.features.length === 0) {
@@ -310,6 +424,10 @@ async function showRoute(start, end, transportMode = 'foot-walking') {
     
   } catch (error) {
     console.error('ルート検索に失敗しました:', error);
+    
+    // ローディングインジケータを非表示
+    hideLoadingIndicator();
+    
     alert('経路検索に失敗しました: ' + error.message);
     return null;
   }
@@ -357,6 +475,9 @@ function switchMode(mode) {
   if (modeIndicatorEl) {
     modeIndicatorEl.textContent = mode === 'restaurant' ? '飲食店モード' : '避難所モード';
   }
+  
+  // body要素にデータ属性を設定
+  document.body.dataset.mode = mode;
   
   // サイドメニューと凡例の切り替え
   restaurantElements.forEach(el => {
