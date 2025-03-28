@@ -2,102 +2,96 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <title>横浜駅周辺情報 - 飲食店と避難所の3Dマップ</title>
-    <meta name="description" content="横浜駅周辺の飲食店情報と避難所情報を3Dで表示します" />
+    <title>横浜駅周辺マップ - 飲食店と避難所</title>
+    <meta name="description" content="横浜駅周辺の飲食店と避難所の3Dマップ" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style-integrated.css" rel="stylesheet" />
+    <link href="style.css" rel="stylesheet" />
     <!-- Cesium JS -->
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Cesium.js"></script>
     <link href="https://cesium.com/downloads/cesiumjs/releases/1.104/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
-    
-    <!-- インラインスタイル（確実にCesiumコンテナを表示するため） -->
-    <style>
-      #cesiumContainer {
-        position: absolute;
-        top: 65px;
-        left: 320px;
-        width: calc(100% - 320px);
-        height: calc(100% - 65px);
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        z-index: 1;
-      }
-      
-      /* モバイル用のスタイル */
-      @media (max-width: 768px) {
-        #cesiumContainer {
-          width: 100%;
-          height: calc(100% - 315px);
-          left: 0;
-        }
-      }
-      
-      /* アイコンフォールバック */
-      .fallback-icon {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: white;
-        border: 2px solid black;
-      }
-    </style>
   </head>
-  <body class="restaurant-view">
+  <body>
     <!-- ヘッダー -->
     <header>
-      <h1>横浜駅周辺情報マップ</h1>
+      <h1 id="pageTitle">横浜駅周辺マップ</h1>
       <nav>
         <ul>
-          <li><a href="#" id="restaurant-mode" class="active">飲食店モード</a></li>
-          <li><a href="#" id="shelter-mode">避難所モード</a></li>
+          <li><a href="#" id="restaurant-mode" class="active">飲食店マップ</a></li>
+          <li><a href="#" id="evacuation-mode">避難所マップ</a></li>
         </ul>
       </nav>
     </header>
 
-    <!-- サイドパネル（モードに応じて内容が変わる） -->
-    <div id="sidePanel">
-      <!-- 飲食店モード用パネル -->
-      <div id="restaurantPanel" class="mode-panel active">
-        <h3>飲食店検索</h3>
-        <div class="search-section">
-          <input type="text" id="searchBox" placeholder="店名やレビューで検索">
+    <!-- サイドメニュー飲食店モード -->
+    <div id="restaurantSideMenu" class="side-menu">
+      <div id="restaurantFilterContainer">
+        <h3>飲食店フィルター</h3>
+        
+        <!-- 検索 -->
+        <div class="filter-section">
+          <input type="text" id="searchBox" placeholder="名前やレビューで検索">
           <button id="searchButton" class="btn">検索</button>
-          <button id="clearButton" class="btn">クリア</button>
+          <button id="clearButton" class="btn">検索をクリア</button>
         </div>
         
+        <!-- 価格帯フィルター -->
         <div class="filter-section">
           <h4>価格帯で絞り込み</h4>
           <div id="priceFilter">
-            <label id="check1"><input type="checkbox" name="priceLevel" value="1"> ¥</label>
-            <label id="check2"><input type="checkbox" name="priceLevel" value="2"> ¥¥</label>
-            <label id="check3"><input type="checkbox" name="priceLevel" value="3"> ¥¥¥</label>
-            <label id="check4"><input type="checkbox" name="priceLevel" value="4"> ¥¥¥¥</label>
+            <label id="check1"><input type="checkbox" value="1" class="price-checkbox"> ¥</label>
+            <label id="check2"><input type="checkbox" value="2" class="price-checkbox"> ¥¥</label>
+            <label id="check3"><input type="checkbox" value="3" class="price-checkbox"> ¥¥¥</label>
+            <label id="check4"><input type="checkbox" value="4" class="price-checkbox"> ¥¥¥¥</label>
           </div>
         </div>
         
+        <!-- 評価フィルター -->
         <div class="filter-section">
           <h4>評価で絞り込み</h4>
-          <div class="range-filter">
-            <input type="range" id="ratingFilter" min="1" max="5" value="1" step="0.5">
-            <span>★ <span id="ratingValue">1</span> 以上</span>
+          <div id="ratingFilter">
+            <label id="hosi1"><input type="checkbox" value="1" class="rating-checkbox"> ★</label>
+            <label id="hosi2"><input type="checkbox" value="2" class="rating-checkbox"> ★★</label>
+            <label id="hosi3"><input type="checkbox" value="3" class="rating-checkbox"> ★★★</label>
+            <label id="hosi4"><input type="checkbox" value="4" class="rating-checkbox"> ★★★★</label>
+            <label id="hosi5"><input type="checkbox" value="5" class="rating-checkbox"> ★★★★★</label>
           </div>
         </div>
-        
-        <div class="action-buttons">
-          <button id="getCurrentLocationRestaurant" class="btn">現在地から近い飲食店</button>
-          <button id="findNearestShelterFromRestaurant" class="btn">近くの避難所を探す</button>
-        </div>
-        
-        <div id="searchResults" class="results-panel">
-          <!-- 検索結果がここに表示されます -->
-        </div>
+      </div>
+
+      <!-- 操作ボタン -->
+      <div class="action-buttons">
+        <button id="getCurrentLocationRestaurantBtn" class="btn">現在地を取得</button>
+        <button id="findNearestRestaurantBtn" class="btn">最寄りの飲食店</button>
+        <button id="resetViewRestaurantBtn" class="btn">表示をリセット</button>
       </div>
       
-      <!-- 避難所モード用パネル -->
-      <div id="shelterPanel" class="mode-panel">
+      <!-- 検索結果 -->
+      <div id="searchResults" class="info-panel">
+        <h3>検索結果</h3>
+        <div id="resultsList"></div>
+      </div>
+      
+      <!-- 最寄り店舗情報 -->
+      <div id="nearestRestaurantInfo" class="info-panel">
+        <h3>最寄りの飲食店</h3>
+        <div id="restaurantDetails">
+          <p>現在地を取得すると、最寄りの飲食店情報が表示されます。</p>
+        </div>
+      </div>
+
+      <!-- 避難モードに切り替え -->
+      <div class="mode-switch">
+        <button id="switchToEvacuationBtn" class="btn btn-large">避難所モードへ切り替え</button>
+        <p class="mode-description">緊急時は避難所モードに切り替えて近くの避難所を探しましょう</p>
+      </div>
+    </div>
+    
+    <!-- サイドメニュー避難所モード -->
+    <div id="evacuationSideMenu" class="side-menu" style="display: none;">
+      <div id="evacuationFilterContainer">
         <h3>避難所フィルター</h3>
         
+        <!-- 避難所種類のフィルター -->
         <div class="filter-section">
           <h4>避難所の種類</h4>
           <div>
@@ -111,6 +105,7 @@
           </div>
         </div>
         
+        <!-- 避難所レベルフィルター -->
         <div class="filter-section">
           <h4>避難所レベル</h4>
           <div class="range-filter">
@@ -119,6 +114,7 @@
           </div>
         </div>
         
+        <!-- 移動手段選択 -->
         <div class="filter-section">
           <h4>移動手段</h4>
           <div>
@@ -131,123 +127,84 @@
             <label><input type="radio" name="transportMode" value="cycling-regular"> 自転車</label>
           </div>
         </div>
-        
-        <div class="action-buttons">
-          <button id="getCurrentLocationShelter" class="btn">現在地から近い避難所</button>
-          <button id="findNearestRestaurantFromShelter" class="btn">近くの飲食店を探す</button>
+      </div>
+
+      <!-- 操作ボタン -->
+      <div class="action-buttons">
+        <button id="getCurrentLocationEvacBtn" class="btn">現在地を取得</button>
+        <button id="resetViewEvacBtn" class="btn">表示をリセット</button>
+        <button id="toggleBuildingsBtn" class="btn">建物表示切替</button>
+      </div>
+      
+      <!-- 最寄り避難所情報 -->
+      <div id="nearestShelterInfo" class="info-panel">
+        <h3>最寄りの避難所</h3>
+        <div id="shelterDetails">
+          <p>現在地を取得すると、最寄りの避難所情報が表示されます。</p>
         </div>
-        
-        <div id="nearestShelterInfo" class="info-panel">
-          <h3>最寄りの避難所</h3>
-          <div id="shelterDetails">
-            <p>現在地を取得すると、最寄りの避難所情報が表示されます。</p>
-          </div>
-        </div>
+      </div>
+
+      <!-- 飲食店モードに切り替え -->
+      <div class="mode-switch">
+        <button id="switchToRestaurantBtn" class="btn btn-large">飲食店モードへ切り替え</button>
+        <p class="mode-description">通常時は飲食店モードで横浜の飲食店を探索できます</p>
       </div>
     </div>
     
     <!-- Cesiumコンテナ -->
     <div id="cesiumContainer"></div>
     
-    <!-- 凡例パネル（モードに応じて内容が変わる） -->
-    <div id="legendPanel">
-      <!-- 飲食店モード用凡例 -->
-      <div id="restaurantLegend" class="mode-legend active">
-        <h4>飲食店の凡例</h4>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: hsl(120, 60%, 50%);"></div>
-          <span>¥ (安価)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: hsl(60, 60%, 50%);"></div>
-          <span>¥¥</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: hsl(30, 60%, 50%);"></div>
-          <span>¥¥¥</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: hsl(0, 60%, 50%);"></div>
-          <span>¥¥¥¥ (高価)</span>
-        </div>
-        <div class="legend-note">
-          <p>※ 高さは評価を表しています (高いほど評価が高い)</p>
-        </div>
+    <!-- 飲食店マップの凡例 -->
+    <div id="restaurantLegend" class="legend">
+      <h4>飲食店の凡例</h4>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: hsl(120, 60%, 50%);"></div>
+        <span>安価 (¥)</span>
       </div>
-      
-      <!-- 避難所モード用凡例 -->
-      <div id="shelterLegend" class="mode-legend">
-        <h4>避難所の凡例</h4>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: rgba(0, 255, 0, 0.7);"></div>
-          <span>指定避難所</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: rgba(0, 0, 255, 0.7);"></div>
-          <span>広域避難場所</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: rgba(255, 255, 0, 0.7);"></div>
-          <span>一時避難場所</span>
-        </div>
-        <div class="legend-note">
-          <p>※ 高さは避難所レベルを表しています</p>
-        </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: hsl(80, 60%, 50%);"></div>
+        <span>リーズナブル (¥¥)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: hsl(40, 60%, 50%);"></div>
+        <span>高め (¥¥¥)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: hsl(0, 60%, 50%);"></div>
+        <span>高級 (¥¥¥¥)</span>
+      </div>
+      <div class="legend-note">
+        <p>※ 高さは評価の高さを表しています</p>
       </div>
     </div>
     
-    <!-- トグルボタン -->
-    <div class="toggle-buttons">
-      <button id="resetViewBtn" class="common-btn">表示をリセット</button>
-      <button id="toggleBuildingsBtn" class="common-btn">建物表示切替</button>
+    <!-- 避難所マップの凡例 -->
+    <div id="evacuationLegend" class="legend" style="display: none;">
+      <h4>避難所の凡例</h4>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: rgba(0, 255, 0, 0.7);"></div>
+        <span>指定避難所</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: rgba(0, 0, 255, 0.7);"></div>
+        <span>広域避難場所</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: rgba(255, 255, 0, 0.7);"></div>
+        <span>一時避難場所</span>
+      </div>
+      <div class="legend-note">
+        <p>※ 高さは避難所レベルを表しています</p>
+      </div>
     </div>
 
-    <!-- デバッグ情報 -->
-    <div id="debugInfo" style="position: absolute; bottom: 10px; left: 330px; background: rgba(0,0,0,0.7); color: white; padding: 10px; z-index: 1000; max-width: 400px; display: none;">
-      <h4>デバッグ情報</h4>
-      <div id="debugContent"></div>
-    </div>
+    <!-- 現在のモード表示 -->
+    <div id="modeIndicator">飲食店モード</div>
     
-    <!-- デバッグ用スクリプト -->
-    <script>
-      // デバッグ情報の表示
-      function showDebug() {
-        document.getElementById('debugInfo').style.display = 'block';
-        const debugContent = document.getElementById('debugContent');
-        
-        // ウィンドウサイズ
-        debugContent.innerHTML = `
-          <p>ウィンドウサイズ: ${window.innerWidth} x ${window.innerHeight}</p>
-          <p>Cesiumコンテナの表示: 
-            width=${document.getElementById('cesiumContainer').offsetWidth}, 
-            height=${document.getElementById('cesiumContainer').offsetHeight}</p>
-          <button onclick="checkCesiumLoaded()">Cesiumの読み込み確認</button>
-        `;
-      }
-      
-      // Cesiumの読み込み確認
-      function checkCesiumLoaded() {
-        const debugContent = document.getElementById('debugContent');
-        if (typeof Cesium !== 'undefined') {
-          debugContent.innerHTML += `<p style="color: green;">Cesiumは正常に読み込まれています</p>`;
-        } else {
-          debugContent.innerHTML += `<p style="color: red;">Cesiumが読み込まれていません</p>`;
-        }
-      }
-      
-      // ダブルクリックでデバッグ情報の表示切替
-      document.addEventListener('dblclick', function() {
-        const debugInfo = document.getElementById('debugInfo');
-        if (debugInfo.style.display === 'none') {
-          showDebug();
-        } else {
-          debugInfo.style.display = 'none';
-        }
-      });
-    </script>
-    
-    <!-- JavaScriptファイル -->
-    <script src="integrated-main.js"></script>
+    <!-- JavaScript -->
+    <script src="common.js"></script>
+    <script src="restaurant.js"></script>
+    <script src="evacuation.js"></script>
+    <script src="main.js"></script>
   </body>
 </html>
-        
