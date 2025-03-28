@@ -28,20 +28,46 @@ function initializeCesium() {
     skyAtmosphere: false, // 大気効果をオフ
   });
 
-  // 航空写真の追加
-  viewer.imageryLayers.addImageryProvider(
-    new Cesium.UrlTemplateImageryProvider({
-      url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
-      maximumLevel: 19,
-    })
-  );
+  try {
+    console.log('地図の背景画像を設定します');
+    
+    // デフォルトの航空写真レイヤーを削除
+    viewer.imageryLayers.removeAll();
+    
+    // 標準地図を追加（航空写真の代わり）
+    viewer.imageryLayers.addImageryProvider(
+      new Cesium.UrlTemplateImageryProvider({
+        url: 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',
+        maximumLevel: 18,
+        credit: '地理院タイル'
+      })
+    );
+    
+    console.log('地図の背景画像を設定しました');
+  } catch (error) {
+    console.error('地図の背景画像設定中にエラーが発生しました:', error);
+  }
 
-  // 3D Tilesデータの参照（PLATEAU - 建物データ）
-  cityModel = viewer.scene.primitives.add(
-    new Cesium.Cesium3DTileset({
-      url: 'https://plateau.geospatial.jp/main/data/3d-tiles/bldg/14100_yokohama/low_resolution/tileset.json',
-    })
-  );
+  try {
+    console.log('3D建物データを読み込みます');
+    
+    // 3D Tilesデータの参照（PLATEAU - 建物データ）
+    cityModel = viewer.scene.primitives.add(
+      new Cesium.Cesium3DTileset({
+        url: 'https://plateau.geospatial.jp/main/data/3d-tiles/bldg/14100_yokohama/low_resolution/tileset.json',
+      })
+    );
+    
+    // 読み込みが完了したら報告
+    cityModel.readyPromise.then(() => {
+      console.log('3D建物データの読み込みが完了しました');
+    }).catch(error => {
+      console.error('3D建物データの読み込みに失敗しました:', error);
+    });
+    
+  } catch (error) {
+    console.error('3D建物データの設定中にエラーが発生しました:', error);
+  }
 
   // 初期視点を設定
   resetView();
@@ -188,15 +214,27 @@ async function showRoute(start, end, transportMode = 'foot-walking') {
   const apiKey = '5b3ce3597851110001cf62483d4f0c5c26f94f3291f93f9de89c0af7'; // OpenRouteService APIキー
   
   try {
+    console.log(`経路を検索します: 開始点(${start[0]}, ${start[1]}) → 終了点(${end[0]}, ${end[1]})`);
+    
     // ルート検索API URL
     const directionsUrl = `https://api.openrouteservice.org/v2/directions/${transportMode}?api_key=${apiKey}&start=${start[0]},${start[1]}&end=${end[0]},${end[1]}`;
     
     // APIリクエスト
     const response = await fetch(directionsUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP エラー: ${response.status}`);
+    }
+    
     const data = await response.json();
+    
+    // レスポンスを確認
+    if (!data.features || data.features.length === 0) {
+      throw new Error('経路が見つかりませんでした');
+    }
     
     // ルートのジオメトリを取得
     const routeCoordinates = data.features[0].geometry.coordinates;
+    console.log(`経路のポイント数: ${routeCoordinates.length}`);
     
     // 地形の高さを考慮した3D座標に変換
     const positions = await getElevatedPositions(routeCoordinates);
@@ -223,6 +261,8 @@ async function showRoute(start, end, transportMode = 'foot-walking') {
     const duration = data.features[0].properties.summary.duration;
     const distance = data.features[0].properties.summary.distance;
     
+    console.log(`経路を表示しました: 所要時間=${duration}秒, 距離=${distance}メートル`);
+    
     // ルート情報を返す
     return {
       duration: duration,
@@ -231,7 +271,7 @@ async function showRoute(start, end, transportMode = 'foot-walking') {
     
   } catch (error) {
     console.error('ルート検索に失敗しました:', error);
-    alert('経路検索に失敗しました。ネットワーク接続をご確認ください。');
+    alert('経路検索に失敗しました: ' + error.message);
     return null;
   }
 }
@@ -244,7 +284,9 @@ function toggleBuildingsVisibility() {
     
     // ボタンテキストを更新
     const toggleBtn = document.getElementById('toggleBuildingsBtn');
-    toggleBtn.textContent = buildingsVisible ? '建物表示オフ' : '建物表示オン';
+    if (toggleBtn) {
+      toggleBtn.textContent = buildingsVisible ? '建物表示オフ' : '建物表示オン';
+    }
   }
 }
 
@@ -265,12 +307,17 @@ function switchMode(mode) {
   ];
   
   // ナビゲーションのアクティブスタイル更新
-  document.getElementById('restaurant-mode').classList.toggle('active', mode === 'restaurant');
-  document.getElementById('evacuation-mode').classList.toggle('active', mode === 'evacuation');
+  const restaurantModeEl = document.getElementById('restaurant-mode');
+  const evacuationModeEl = document.getElementById('evacuation-mode');
+  
+  if (restaurantModeEl) restaurantModeEl.classList.toggle('active', mode === 'restaurant');
+  if (evacuationModeEl) evacuationModeEl.classList.toggle('active', mode === 'evacuation');
   
   // モード表示の更新
-  document.getElementById('modeIndicator').textContent = 
-    mode === 'restaurant' ? '飲食店モード' : '避難所モード';
+  const modeIndicatorEl = document.getElementById('modeIndicator');
+  if (modeIndicatorEl) {
+    modeIndicatorEl.textContent = mode === 'restaurant' ? '飲食店モード' : '避難所モード';
+  }
   
   // サイドメニューと凡例の切り替え
   restaurantElements.forEach(el => {
@@ -282,8 +329,10 @@ function switchMode(mode) {
   });
   
   // ページタイトルを更新
-  document.getElementById('pageTitle').textContent = 
-    mode === 'restaurant' ? '横浜駅周辺飲食店マップ' : '横浜駅周辺避難所マップ';
+  const pageTitleEl = document.getElementById('pageTitle');
+  if (pageTitleEl) {
+    pageTitleEl.textContent = mode === 'restaurant' ? '横浜駅周辺飲食店マップ' : '横浜駅周辺避難所マップ';
+  }
   
   // エンティティをクリア
   viewer.entities.removeAll();
