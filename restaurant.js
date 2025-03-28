@@ -94,20 +94,20 @@ function displayRestaurants(restaurants) {
         
         // 評価に基づいて高さを変更（評価が高いほど高い）
         const baseHeight = 20; // 基本の高さ
-        const ratingMultiplier = 100; // 評価1つあたりの高さ
+        const ratingMultiplier = 40; // 評価1つあたりの高さ
         
         // 評価の取得と正規化（1〜5の範囲に）
         const rating = item.rating === "N/A" || !item.rating ? 1 : Math.min(Math.max(parseFloat(item.rating), 1), 5);
         
-        // 高さの計算（評価1なら50、評価5なら250）
-        const height = baseHeight + (rating - 1) * ratingMultiplier;
+        // 高さの計算（評価1なら30、評価5なら190）
+        const height = baseHeight + (rating * ratingMultiplier);
         
         // 価格帯の取得と正規化
         const priceLevel = item.price_level === "N/A" || !item.price_level ? 1 : Math.min(Math.max(parseInt(item.price_level, 10), 1), 4);
         
         // 価格帯に基づいた色相の計算（安い：緑、高い：赤紫）
-        const hue = 120 - ((priceLevel - 1) / 3) * 160; // 120（緑）から-40（赤紫）へ
-        const saturation = 60; // 彩度は固定
+        const hue = 120 - ((priceLevel - 1) / 3) * 120; // 120（緑）から0（赤）へ
+        const saturation = 80; // 彩度は固定
         const lightness = 50; // 明度も固定
         
         // HSL色の作成
@@ -153,7 +153,7 @@ function displayRestaurants(restaurants) {
             <button onclick="switchToEvacuation(${lng}, ${lat})">この場所から避難所を探す</button>
         `;
         
-        // エンティティとして3D四角柱を追加（避難所と同様のスタイル）
+        // エンティティとして3D四角柱を追加（参考コードと同様のスタイル）
         viewer.entities.add({
           name: name,
           description: description,
@@ -163,27 +163,12 @@ function displayRestaurants(restaurants) {
             height / 2  // 高さの半分を中心位置に設定
           ),
           box: {
-            dimensions: new Cesium.Cartesian3(30, 30, height), // 幅・奥行きは30メートルに設定
-            material: color.withAlpha(0.7), // 透明度を追加（避難所と同様）
+            dimensions: new Cesium.Cartesian3(20, 20, height), // 幅・奥行きは20メートルに設定
+            material: color.withAlpha(0.7), // 透明度を追加
             outline: true,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 1.0 // アウトラインの幅を指定
+            outlineColor: Cesium.Color.BLACK
           },
-          // ラベルを追加（飲食店名を表示）
-          label: {
-            text: name,
-            font: '12px sans-serif',
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            outlineWidth: 2,
-            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-            pixelOffset: new Cesium.Cartesian2(0, -height / 2 - 10), // 四角柱の上部にラベルを表示
-            fillColor: Cesium.Color.WHITE,
-            outlineColor: Cesium.Color.BLACK,
-            disableDepthTestDistance: Number.POSITIVE_INFINITY, // 常に表示
-            scale: 0.8, // ラベルのサイズ
-            // 近づいたときだけ表示するオプション
-            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 2000)
-          },
+          // ラベルの設定は削除（パフォーマンス向上のため）
           properties: {
             isRestaurant: true,
             restaurantData: item,
