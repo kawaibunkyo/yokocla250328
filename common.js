@@ -16,7 +16,7 @@ function initializeCesium() {
   console.log('Cesium初期化処理を開始します');
   
   try {
-    // Cesium Viewerの初期化（地形プロバイダを設定）
+    // Cesium Viewerの初期化
     viewer = new Cesium.Viewer('cesiumContainer', {
       terrainProvider: Cesium.createWorldTerrain({
         requestWaterMask: true,  // 水面効果を有効化
@@ -33,10 +33,16 @@ function initializeCesium() {
       timeline: false,
       navigationHelpButton: false,
       scene3DOnly: true,
-      skyBox: false,
+      skyBox: false,        // 空のテクスチャを無効化
       skyAtmosphere: false, // 大気効果をオフ
     });
 
+    // 既定の地球イメージを削除し、背景を透明にする
+    viewer.scene.globe.baseColor = Cesium.Color.TRANSPARENT;
+    // 地表面を暗くする（地面が完全に透明になるのを防ぐ）
+    viewer.scene.globe.translucency.enabled = true;
+    viewer.scene.globe.translucency.frontFaceAlpha = 0.1;
+    
     console.log('Cesium Viewer初期化完了');
     
     // 背景画像設定
@@ -65,14 +71,27 @@ function setupImageryLayers() {
     // デフォルトの航空写真レイヤーを削除
     viewer.imageryLayers.removeAll();
     
-    // オプション1: 地理院タイルの航空写真を正しいフォーマットで追加
+    // 地理院タイルの航空写真を追加
     const seamlessPhoto = viewer.imageryLayers.addImageryProvider(
       new Cesium.UrlTemplateImageryProvider({
         url: 'https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg',
-        maximumLevel: 18,
+        maximumLevel: 19,
         credit: '地理院タイル'
       })
     );
+    
+    // PLATEAU-Orthoの参照（添付ファイルからの参考）
+    try {
+      const plateauOrtho = viewer.imageryLayers.addImageryProvider(
+        new Cesium.UrlTemplateImageryProvider({
+          url: 'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/ortho/tiles/{z}/{x}/{y}.png',
+          maximumLevel: 19,
+        })
+      );
+      console.log('PLATEAU-Orthoを追加しました');
+    } catch (orthoError) {
+      console.warn('PLATEAU-Orthoの追加に失敗しました:', orthoError);
+    }
     
     console.log('地図の背景画像を設定しました');
   } catch (error) {
